@@ -1,6 +1,5 @@
 import { Body, Controller, HttpStatus, Post, Res } from '@nestjs/common';
 import { AuthService } from 'src/services/auth/auth.service';
-import { Response } from 'express';
 import { RegisterDTO } from 'src/DTO/register.dto';
 import { LoginDTO } from 'src/DTO/login.dto';
 
@@ -18,7 +17,7 @@ export class AuthController {
   async login(@Body() body: LoginDTO) {
     body.email = body.email.toLowerCase();
     const response = await this.service.login(body);
-    return response.user;
+    return response;
   }
 
   @Post('logout')
