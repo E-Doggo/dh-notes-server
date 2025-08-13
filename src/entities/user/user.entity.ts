@@ -11,10 +11,13 @@ import { NoteEntity } from '../note/note.entity';
 @Entity()
 export class UserEntity {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id: number;
 
   @Column({ unique: true })
   email: string;
+
+  @Column({ nullable: false })
+  username: string;
 
   @Column()
   password_hash: string;
