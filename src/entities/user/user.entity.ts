@@ -6,10 +6,10 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { NoteEntity } from '../note/note.entity';
+import { Note } from '../note/note.entity';
 
-@Entity()
-export class UserEntity {
+@Entity('users')
+export class User {
   @PrimaryGeneratedColumn('uuid')
   id: number;
 
@@ -31,6 +31,6 @@ export class UserEntity {
   @Column({ default: true })
   is_active: boolean;
 
-  @OneToMany(() => NoteEntity, (note) => note.user)
-  notes: NoteEntity[];
+  @OneToMany(() => Note, (note) => note.user)
+  notes: Note[];
 }

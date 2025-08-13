@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
-import { UserEntity } from 'src/entities/user/user.entity';
+import { User } from 'src/entities/user/user.entity';
 import { RegisterDTO } from 'src/DTO/register.dto';
 import { compare } from 'bcrypt';
 import { LoginDTO } from 'src/DTO/login.dto';
@@ -24,7 +24,7 @@ export class AuthService {
   async validateUser(
     data: LoginDTO,
   ): Promise<{ id: number; username: string }> {
-    const user: UserEntity = await this.userService.findByEmail(data.email);
+    const user: User = await this.userService.getPassWordByEmail(data.email);
 
     if (!user) {
       throw new UnauthorizedException('Usuario no encontrado');

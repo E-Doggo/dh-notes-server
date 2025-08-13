@@ -1,14 +1,14 @@
 import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { NoteEntity } from '../note/note.entity';
+import { Note } from '../note/note.entity';
 
-@Entity()
-export class TagEntity {
+@Entity('tags')
+export class Tag {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
   title: string;
 
-  @ManyToMany(() => NoteEntity, (note) => note.tags)
-  notes: NoteEntity[];
+  @ManyToMany(() => Note, (note) => note.tags)
+  notes: Note[];
 }
