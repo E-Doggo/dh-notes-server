@@ -1,13 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Note } from 'src/entities/note/note.entity';
 import { Tag } from 'src/entities/tags/tags.entity';
-import { DeleteResult, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class TagsService {
   constructor(
     @InjectRepository(Tag)
     private readonly tagRepository: Repository<Tag>,
+    @InjectRepository(Note)
+    private readonly noteRepository: Repository<Note>,
   ) {}
 
   async createTag(title: string, userId: string): Promise<Tag> {
@@ -28,14 +31,36 @@ export class TagsService {
     return result;
   }
 
-  async deleteTag(tagId: number, userId: string): Promise<DeleteResult> {
-    const result = await this.tagRepository
-      .createQueryBuilder('tags')
-      .delete()
-      .from('tags')
-      .where('id = :tagId AND user.id = :userId', { tagId, userId })
-      .execute();
+  async deleteTag(
+    tagId: number,
+    userId: string,
+    replacementTag?: number,
+  ): Promise<void> {
+    const tag = await this.tagRepository.findOne({
+      where: { id: tagId, user: { id: userId } },
+      relations: ['notes'],
+    });
 
-    return result;
+    if (!tag) {
+      throw new Error('Tag not found or not owned by user');
+    }
+
+    await this.noteRepository
+      .createQueryBuilder()
+      .relation('notes', 'tags')
+      .of(tag.notes)
+      .remove(tag.id);
+
+    if (replacementTag != undefined) {
+      console.log('q');
+
+      await this.noteRepository
+        .createQueryBuilder()
+        .relation('notes', 'tags')
+        .of(tag.notes)
+        .add(replacementTag);
+    }
+
+    await this.tagRepository.delete(tagId);
   }
 }
