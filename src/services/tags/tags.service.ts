@@ -11,12 +11,20 @@ export class TagsService {
   ) {}
 
   async createTag(title: string, userId: string): Promise<Tag> {
-    console.log(userId);
-
     const tag = this.tagRepository.create({
       title: title,
       user: { id: userId },
     });
     return await this.tagRepository.save(tag);
+  }
+
+  async getTagsByUser(userId: string): Promise<Tag[]> {
+    const result = await this.tagRepository
+      .createQueryBuilder('tags')
+      .addSelect('tags')
+      .where('tags.user.id = :id', { id: userId })
+      .getMany();
+
+    return result;
   }
 }
