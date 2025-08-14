@@ -58,7 +58,7 @@ export class NotesService {
 
     if (filters.tags != undefined && filters.tags.length !== 0) {
       queryBuilder
-        .innerJoin('notes.tags', 'filterTags') // separate alias
+        .innerJoin('notes.tags', 'filterTags')
         .andWhere('filterTags.id IN (:...tags)', { tags: filters.tags });
     }
 
