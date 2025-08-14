@@ -9,8 +9,6 @@ export class UsersController {
   @Get('profile')
   @UseGuards(AuthGuard('jwt'))
   async getProfile(@Request() req) {
-    console.log(req);
-
     return await this.service.findUserByID(req.user.userId);
   }
 }

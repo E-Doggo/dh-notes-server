@@ -23,7 +23,7 @@ export class AuthService {
 
   async validateUser(
     data: LoginDTO,
-  ): Promise<{ id: number; username: string }> {
+  ): Promise<{ id: string; username: string }> {
     const user: User = await this.userService.getPassWordByEmail(data.email);
 
     if (!user) {
