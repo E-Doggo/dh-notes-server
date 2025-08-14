@@ -24,8 +24,6 @@ export class FiltersService {
       user: { id: userId } as User,
     });
 
-    console.log(filters, filterObject);
-
     return await this.repositoryFilters.save(filterObject);
   }
 
