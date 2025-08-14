@@ -6,6 +6,11 @@ import { In, Repository } from 'typeorm';
 import { Tag } from 'src/entities/tags/tags.entity';
 import { BasicFiltersDTO } from 'src/DTO/basicFilters.dto';
 import { filter } from 'rxjs';
+import {
+  PaginationFilterDTO,
+  PaginationResultDTO,
+} from 'src/DTO/pagination.dto';
+import { offsetCalculator } from 'src/common/utils/pagCalculator';
 
 @Injectable()
 export class NotesService {
@@ -49,7 +54,13 @@ export class NotesService {
   async getNotesByUser(
     userId: string,
     filters: BasicFiltersDTO,
-  ): Promise<Note[]> {
+    paginationFilter: PaginationFilterDTO,
+  ): Promise<PaginationResultDTO> {
+    const { page, limit, offset } = offsetCalculator(
+      paginationFilter.page,
+      paginationFilter.limit,
+    );
+
     const queryBuilder = this.noteRepository
       .createQueryBuilder('notes')
       .addSelect('notes')
@@ -76,7 +87,17 @@ export class NotesService {
         .andWhere('filterTags.id IN (:...tags)', { tags: filters.tags });
     }
 
-    const result = await queryBuilder.getMany();
+    queryBuilder.skip(offset).take(limit);
+
+    const [data, total] = await queryBuilder.getManyAndCount();
+
+    const result: PaginationResultDTO = {
+      data: data,
+      total: total,
+      limit: limit,
+      page: page,
+    };
+
     return result;
   }
 
