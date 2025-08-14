@@ -5,12 +5,12 @@ import { Note } from 'src/entities/note/note.entity';
 import { In, Repository } from 'typeorm';
 import { Tag } from 'src/entities/tags/tags.entity';
 import { BasicFiltersDTO } from 'src/DTO/basicFilters.dto';
-import { filter } from 'rxjs';
 import {
   PaginationFilterDTO,
   PaginationResultDTO,
 } from 'src/DTO/pagination.dto';
 import { offsetCalculator } from 'src/common/utils/pagCalculator';
+import { FiltersService } from '../filters/filters.service';
 
 @Injectable()
 export class NotesService {
@@ -19,6 +19,8 @@ export class NotesService {
     private readonly noteRepository: Repository<Note>,
     @InjectRepository(Tag)
     private readonly tagRepository: Repository<Tag>,
+
+    private readonly filterService: FiltersService,
   ) {}
 
   async findNote(id: number, userId: string) {
@@ -88,6 +90,8 @@ export class NotesService {
     }
 
     queryBuilder.skip(offset).take(limit);
+
+    await this.filterService.saveFilters(filters, userId);
 
     const [data, total] = await queryBuilder.getManyAndCount();
 

@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  Index,
   JoinTable,
   ManyToMany,
   ManyToOne,
@@ -13,11 +14,13 @@ import { User } from '../user/user.entity';
 import { Tag } from '../tags/tags.entity';
 
 @Entity('notes')
+@Index(['user', 'is_archived'])
 export class Note {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
+  @Index()
   title: string;
 
   @Column()

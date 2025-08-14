@@ -1,17 +1,15 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, Min } from 'class-validator';
+import { IsInt, IsOptional } from 'class-validator';
 
 export class PaginationFilterDTO {
   @Type(() => Number)
   @IsOptional()
   @IsInt()
-  //   @Min(1)
   limit: number;
 
   @Type(() => Number)
   @IsInt()
   @IsOptional()
-  //   @Min(1)
   page: number;
 }
 
