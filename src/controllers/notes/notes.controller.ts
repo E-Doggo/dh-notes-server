@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   ParseArrayPipe,
   Post,
   Query,
@@ -51,5 +52,16 @@ export class NotesController {
     };
 
     return await this.noteService.getNotesByUser(userId, filters);
+  }
+
+  @Get('user/:id')
+  @UseGuards(AuthGuard('jwt'))
+  async getSingleNote(
+    @Param('id') id: number,
+    @Request() req: { user: JWTUserDto },
+  ) {
+    const userId: string = req.user.id;
+
+    return await this.noteService.getSingleNote(id, userId);
   }
 }

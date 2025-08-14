@@ -71,4 +71,18 @@ export class NotesService {
     const result = await queryBuilder.getMany();
     return result;
   }
+
+  async getSingleNote(id: number, userId: string) {
+    const result = this.noteRepository
+      .createQueryBuilder('notes')
+      .addSelect('notes')
+      .innerJoinAndSelect('notes.tags', 'tags')
+      .leftJoin('notes.user', 'user')
+      .where('user.id = :userId', { userId: userId })
+      .andWhere('notes.id = :id', { id: id })
+      .andWhere('notes.deleted_at IS NULL')
+      .getOne();
+
+    return result;
+  }
 }
