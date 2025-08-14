@@ -4,7 +4,9 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Post,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -38,8 +40,11 @@ export class TagsController {
   async deleteTag(
     @Param('id') tagId: number,
     @Request() req: { user: JWTUserDto },
+    @Query('replacementTag') replacementTag?: number,
   ) {
+    console.log(replacementTag);
+
     const userId: string = req.user.id;
-    return await this.tagService.deleteTag(tagId, userId);
+    return await this.tagService.deleteTag(tagId, userId, replacementTag);
   }
 }

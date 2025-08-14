@@ -53,7 +53,7 @@ export class NotesService {
     const queryBuilder = this.noteRepository
       .createQueryBuilder('notes')
       .addSelect('notes')
-      .innerJoinAndSelect('notes.tags', 'tags')
+      .leftJoinAndSelect('notes.tags', 'tags')
       .leftJoin('notes.user', 'user')
       .where('user.id = :id', { id: userId })
       .andWhere('notes.deleted_at IS NULL');

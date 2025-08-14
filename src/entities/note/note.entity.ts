@@ -40,7 +40,6 @@ export class Note {
 
   @ManyToMany(() => Tag, (tag) => tag.notes, {
     cascade: true,
-    onDelete: 'CASCADE',
   })
   @JoinTable()
   tags: Tag[];
