@@ -78,6 +78,17 @@ export class NotesController {
     return await this.noteService.updateNote(id, body, userId);
   }
 
+  @Put('archive/:id')
+  @UseGuards(AuthGuard('jwt'))
+  async setArchiveStatus(
+    @Param('id') id: number,
+    @Body('archived') archived: boolean,
+    @Request() req: { user: JWTUserDto },
+  ) {
+    const userId: string = req.user.id;
+    return await this.noteService.setArchiveStatus(id, archived, userId);
+  }
+
   @Delete('delete/:id')
   @UseGuards(AuthGuard('jwt'))
   async deleteNote(

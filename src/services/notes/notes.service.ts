@@ -16,6 +16,14 @@ export class NotesService {
     private readonly tagRepository: Repository<Tag>,
   ) {}
 
+  async findNote(id: number, userId: string) {
+    const note = await this.noteRepository.findOne({
+      where: { id, user: { id: userId } },
+    });
+
+    return note;
+  }
+
   async createNote(note: CreateNoteDTO, userId: string) {
     let tags: Tag[];
 
@@ -87,9 +95,7 @@ export class NotesService {
   }
 
   async updateNote(id: number, body: Partial<Note>, userId: string) {
-    const note = await this.noteRepository.findOne({
-      where: { id, user: { id: userId } },
-    });
+    const note = await this.findNote(id, userId);
 
     if (!note) {
       throw new Error('Note not found or not owned by user');
@@ -101,14 +107,20 @@ export class NotesService {
   }
 
   async deleteNote(id: number, userId: string) {
-    const note = await this.noteRepository.findOne({
-      where: { id, user: { id: userId } },
-    });
+    const note = await this.findNote(id, userId);
 
     if (!note) {
       throw new Error('Note not found or not owned by user');
     }
 
     return await this.noteRepository.softDelete({ id });
+  }
+
+  async setArchiveStatus(id: number, status: boolean, userId: string) {
+    const note = await this.findNote(id, userId);
+    if (!note) {
+      throw new Error('Note not found or not owned by user');
+    }
+    return await this.noteRepository.update({ id }, { is_archived: status });
   }
 }
