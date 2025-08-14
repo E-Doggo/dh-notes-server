@@ -45,7 +45,7 @@ export class NotesService {
     const queryBuilder = this.noteRepository
       .createQueryBuilder('notes')
       .addSelect('notes')
-      .leftJoinAndSelect('notes.tags', 'tags')
+      .innerJoinAndSelect('notes.tags', 'tags')
       .leftJoin('notes.user', 'user')
       .where('user.id = :id', { id: userId })
       .andWhere('notes.deleted_at IS NULL');
@@ -57,9 +57,9 @@ export class NotesService {
     }
 
     if (filters.tags != undefined && filters.tags.length !== 0) {
-      queryBuilder.andWhere('tags.id IN (:...tags)', {
-        tags: filters.tags,
-      });
+      queryBuilder
+        .innerJoin('notes.tags', 'filterTags') // separate alias
+        .andWhere('filterTags.id IN (:...tags)', { tags: filters.tags });
     }
 
     const result = await queryBuilder.getMany();
