@@ -27,7 +27,7 @@ export class AuthService {
     const user: User = await this.userService.getPassWordByEmail(data.email);
 
     if (!user) {
-      throw new UnauthorizedException('Usuario no encontrado');
+      throw new UnauthorizedException('User Not Found');
     }
 
     const isPasswordValid: boolean = await compare(
@@ -35,7 +35,7 @@ export class AuthService {
       user.password_hash,
     );
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Contraseña incorrecta');
+      throw new UnauthorizedException('Wrong password');
     }
 
     return { id: user.id, username: user.username };

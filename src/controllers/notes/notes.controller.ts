@@ -5,6 +5,7 @@ import {
   Param,
   ParseArrayPipe,
   Post,
+  Put,
   Query,
   Request,
   UseGuards,
@@ -63,5 +64,16 @@ export class NotesController {
     const userId: string = req.user.id;
 
     return await this.noteService.getSingleNote(id, userId);
+  }
+
+  @Put('user/:id')
+  @UseGuards(AuthGuard('jwt'))
+  async updateNote(
+    @Param('id') id: number,
+    @Body() body: Partial<Note>,
+    @Request() req: { user: JWTUserDto },
+  ) {
+    const userId: string = req.user.id;
+    return await this.noteService.updateNote(id, body, userId);
   }
 }

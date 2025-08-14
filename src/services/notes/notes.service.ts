@@ -85,4 +85,18 @@ export class NotesService {
 
     return result;
   }
+
+  async updateNote(id: number, body: Partial<Note>, userId: string) {
+    const note = await this.noteRepository.findOne({
+      where: { id, user: { id: userId } },
+    });
+
+    if (!note) {
+      throw new Error('Note not found or not owned by user');
+    }
+
+    const updatedNote = this.noteRepository.merge(note, body);
+
+    return await this.noteRepository.save(updatedNote);
+  }
 }
