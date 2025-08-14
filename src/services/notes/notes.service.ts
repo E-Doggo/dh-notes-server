@@ -59,14 +59,14 @@ export class NotesService {
       .andWhere('notes.deleted_at IS NULL');
 
     if (filters.title != undefined) {
-      queryBuilder.andWhere('LOWER(notes.title) LIKE LOWER(:title)', {
-        title: `%${filters.title}%`,
+      queryBuilder.andWhere('notes.title ILIKE :title', {
+        title: `${filters.title}%`,
       });
     }
 
     if (filters.content != undefined) {
-      queryBuilder.andWhere('LOWER(notes.content) LIKE LOWER(:content)', {
-        content: `%${filters.content}%`,
+      queryBuilder.andWhere('notes.content ILIKE :content', {
+        content: `${filters.content}%`,
       });
     }
 
