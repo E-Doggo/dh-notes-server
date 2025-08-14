@@ -56,6 +56,12 @@ export class NotesService {
       });
     }
 
+    if (filters.content != undefined) {
+      queryBuilder.andWhere('LOWER(notes.content) LIKE LOWER(:content)', {
+        content: `%${filters.content}%`,
+      });
+    }
+
     if (filters.tags != undefined && filters.tags.length !== 0) {
       queryBuilder
         .innerJoin('notes.tags', 'filterTags')

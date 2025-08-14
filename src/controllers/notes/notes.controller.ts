@@ -35,6 +35,7 @@ export class NotesController {
   async getNotesByUser(
     @Request() req: { user: JWTUserDto },
     @Query('title') title?: string,
+    @Query('content') content?: string,
     @Query(
       'tags',
       new ParseArrayPipe({ items: Number, separator: ',', optional: true }),
@@ -43,7 +44,11 @@ export class NotesController {
   ) {
     const userId: string = req.user.id;
 
-    const filters: BasicFiltersDTO = { title: title, tags: tags };
+    const filters: BasicFiltersDTO = {
+      title: title,
+      content: content,
+      tags: tags,
+    };
 
     return await this.noteService.getNotesByUser(userId, filters);
   }
