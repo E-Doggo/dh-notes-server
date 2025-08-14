@@ -1,14 +1,24 @@
-import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { NoteEntity } from '../note/note.entity';
+import {
+  Column,
+  Entity,
+  ManyToMany,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { Note } from '../note/note.entity';
+import { User } from '../user/user.entity';
 
-@Entity()
-export class TagEntity {
+@Entity('tags')
+export class Tag {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
   title: string;
 
-  @ManyToMany(() => NoteEntity, (note) => note.tags)
-  notes: NoteEntity[];
+  @ManyToMany(() => Note, (note) => note.tags, { onDelete: 'CASCADE' })
+  notes: Note[];
+
+  @ManyToOne(() => User, (user) => user.tags, { onDelete: 'SET NULL' })
+  user: User;
 }

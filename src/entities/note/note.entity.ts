@@ -9,11 +9,11 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { UserEntity } from '../user/user.entity';
-import { TagEntity } from '../tags/tags.entity';
+import { User } from '../user/user.entity';
+import { Tag } from '../tags/tags.entity';
 
-@Entity()
-export class NoteEntity {
+@Entity('notes')
+export class Note {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -35,10 +35,13 @@ export class NoteEntity {
   @UpdateDateColumn({ type: 'timestamp without time zone' })
   updated_at: Date;
 
-  @ManyToOne(() => UserEntity, (user) => user.notes, { onDelete: 'SET NULL' })
-  user: UserEntity;
+  @ManyToOne(() => User, (user) => user.notes, { onDelete: 'SET NULL' })
+  user: User;
 
-  @ManyToMany(() => TagEntity, (tag) => tag.notes, { cascade: true })
+  @ManyToMany(() => Tag, (tag) => tag.notes, {
+    cascade: true,
+    onDelete: 'SET NULL',
+  })
   @JoinTable()
-  tags: TagEntity[];
+  tags: Tag[];
 }

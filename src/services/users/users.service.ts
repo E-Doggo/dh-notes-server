@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from 'src/entities/user/user.entity';
+import { User } from 'src/entities/user/user.entity';
 import { Repository } from 'typeorm';
 import { genSalt, hash } from 'bcrypt';
 import { RegisterDTO } from 'src/DTO/register.dto';
@@ -8,8 +8,8 @@ import { RegisterDTO } from 'src/DTO/register.dto';
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectRepository(UserEntity)
-    private readonly repository: Repository<UserEntity>,
+    @InjectRepository(User)
+    private readonly repository: Repository<User>,
   ) {}
 
   async hashPassword(password: string): Promise<string> {
@@ -19,9 +19,9 @@ export class UsersService {
     return await hash(password, salt);
   }
 
-  async createUser(data: RegisterDTO): Promise<UserEntity> {
+  async createUser(data: RegisterDTO): Promise<User> {
     const hashedPassword = await this.hashPassword(data.password);
-    const user: UserEntity = this.repository.create({
+    const user: User = this.repository.create({
       email: data.email,
       username: data.username,
       password_hash: hashedPassword,
@@ -29,11 +29,20 @@ export class UsersService {
     return this.repository.save(user);
   }
 
-  async findByEmail(email: string): Promise<UserEntity> {
-    return this.repository.findOneBy({ email: email });
+  async getPassWordByEmail(email: string): Promise<User> {
+    return await this.repository.findOne({
+      where: { email: email },
+      select: ['password_hash', 'id', 'username'],
+    });
   }
 
-  async findUserByID(id: number): Promise<UserEntity> {
-    return await this.repository.findOne({ where: { id: id } });
+  async findUserByID(id: string): Promise<User> {
+    const result = await this.repository
+      .createQueryBuilder('users')
+      .select(['users.id', 'users.username', 'users.email', 'users.is_active'])
+      .where('users.id = :id', { id })
+      .getOne();
+
+    return result;
   }
 }

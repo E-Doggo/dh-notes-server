@@ -6,9 +6,17 @@ import { UsersModule } from './modules/users/users.module';
 import { NotesModule } from './modules/notes/notes.module';
 import { TagsModule } from './modules/tags/tags.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [DatabaseModule, UsersModule, NotesModule, TagsModule, AuthModule],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    DatabaseModule,
+    UsersModule,
+    NotesModule,
+    TagsModule,
+    AuthModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

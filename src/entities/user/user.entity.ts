@@ -6,12 +6,13 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { NoteEntity } from '../note/note.entity';
+import { Note } from '../note/note.entity';
+import { Tag } from '../tags/tags.entity';
 
-@Entity()
-export class UserEntity {
+@Entity('users')
+export class User {
   @PrimaryGeneratedColumn('uuid')
-  id: number;
+  id: string;
 
   @Column({ unique: true })
   email: string;
@@ -31,6 +32,9 @@ export class UserEntity {
   @Column({ default: true })
   is_active: boolean;
 
-  @OneToMany(() => NoteEntity, (note) => note.user)
-  notes: NoteEntity[];
+  @OneToMany(() => Note, (note) => note.user)
+  notes: Note[];
+
+  @OneToMany(() => Tag, (tag) => tag.user)
+  tags: Tag[];
 }

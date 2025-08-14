@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
-import { UserEntity } from 'src/entities/user/user.entity';
+import { User } from 'src/entities/user/user.entity';
 import { RegisterDTO } from 'src/DTO/register.dto';
 import { compare } from 'bcrypt';
 import { LoginDTO } from 'src/DTO/login.dto';
@@ -17,14 +17,14 @@ export class AuthService {
     await this.userService.createUser(data);
   }
 
-  async findUserByID(id: number) {
+  async findUserByID(id: string) {
     return await this.userService.findUserByID(id);
   }
 
   async validateUser(
     data: LoginDTO,
-  ): Promise<{ id: number; username: string }> {
-    const user: UserEntity = await this.userService.findByEmail(data.email);
+  ): Promise<{ id: string; username: string }> {
+    const user: User = await this.userService.getPassWordByEmail(data.email);
 
     if (!user) {
       throw new UnauthorizedException('Usuario no encontrado');
@@ -46,8 +46,10 @@ export class AuthService {
 
     const payload = { username: user.username, sub: user.id };
 
+    const token = this.jwtService.sign(payload);
+
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: token,
       user: { id: user.id, username: user.username },
     };
   }
