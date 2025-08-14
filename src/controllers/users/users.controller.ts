@@ -1,5 +1,6 @@
 import { Controller, Get, Request, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { JWTUserDto } from 'src/DTO/jwtUser.dto';
 import { UsersService } from 'src/services/users/users.service';
 
 @Controller('users')
@@ -8,7 +9,8 @@ export class UsersController {
 
   @Get('profile')
   @UseGuards(AuthGuard('jwt'))
-  async getProfile(@Request() req) {
-    return await this.service.findUserByID(req.user.userId);
+  async getProfile(@Request() req: { user: JWTUserDto }) {
+    const userId: string = req.user.id;
+    return await this.service.findUserByID(userId);
   }
 }

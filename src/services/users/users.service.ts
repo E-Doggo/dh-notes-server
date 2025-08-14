@@ -36,7 +36,7 @@ export class UsersService {
     });
   }
 
-  async findUserByID(id: number): Promise<User> {
+  async findUserByID(id: string): Promise<User> {
     const result = await this.repository
       .createQueryBuilder('users')
       .select(['users.id', 'users.username', 'users.email', 'users.is_active'])

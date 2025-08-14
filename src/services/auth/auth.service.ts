@@ -17,7 +17,7 @@ export class AuthService {
     await this.userService.createUser(data);
   }
 
-  async findUserByID(id: number) {
+  async findUserByID(id: string) {
     return await this.userService.findUserByID(id);
   }
 
