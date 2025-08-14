@@ -35,4 +35,20 @@ export class NotesService {
 
     return await this.noteRepository.save(noteObject);
   }
+
+  async getNotesByUser(userId: string): Promise<Note[]> {
+    const result = await this.noteRepository
+      .createQueryBuilder('notes')
+      .addSelect([
+        'notes.title',
+        'notes.content',
+        'notes.created_at',
+        'notes.updated_at',
+      ])
+      .where('notes.user.id = :id', { id: userId })
+      .andWhere('notes.deleted_at IS NULL')
+      .getMany();
+
+    return result;
+  }
 }
