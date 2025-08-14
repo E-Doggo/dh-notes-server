@@ -2,11 +2,14 @@ import {
   Body,
   Controller,
   Get,
+  ParseArrayPipe,
   Post,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { BasicFiltersDTO } from 'src/DTO/basicFilters.dto';
 import { CreateNoteDTO } from 'src/DTO/createNote.dto';
 import { JWTUserDto } from 'src/DTO/jwtUser.dto';
 import { Note } from 'src/entities/note/note.entity';
@@ -29,9 +32,19 @@ export class NotesController {
 
   @Get('user')
   @UseGuards(AuthGuard('jwt'))
-  async getNotesByUser(@Request() req: { user: JWTUserDto }) {
+  async getNotesByUser(
+    @Request() req: { user: JWTUserDto },
+    @Query('title') title?: string,
+    @Query(
+      'tags',
+      new ParseArrayPipe({ items: Number, separator: ',', optional: true }),
+    )
+    tags?: number[],
+  ) {
     const userId: string = req.user.id;
 
-    return await this.noteService.getNotesByUser(userId);
+    const filters: BasicFiltersDTO = { title: title, tags: tags };
+
+    return await this.noteService.getNotesByUser(userId, filters);
   }
 }

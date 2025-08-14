@@ -4,6 +4,8 @@ import { CreateNoteDTO } from 'src/DTO/createNote.dto';
 import { Note } from 'src/entities/note/note.entity';
 import { In, Repository } from 'typeorm';
 import { Tag } from 'src/entities/tags/tags.entity';
+import { BasicFiltersDTO } from 'src/DTO/basicFilters.dto';
+import { filter } from 'rxjs';
 
 @Injectable()
 export class NotesService {
@@ -36,14 +38,31 @@ export class NotesService {
     return await this.noteRepository.save(noteObject);
   }
 
-  async getNotesByUser(userId: string): Promise<Note[]> {
-    const result = await this.noteRepository
+  async getNotesByUser(
+    userId: string,
+    filters: BasicFiltersDTO,
+  ): Promise<Note[]> {
+    const queryBuilder = this.noteRepository
       .createQueryBuilder('notes')
       .addSelect('notes')
-      .where('notes.user.id = :id', { id: userId })
-      .andWhere('notes.deleted_at IS NULL')
-      .getMany();
+      .leftJoinAndSelect('notes.tags', 'tags')
+      .leftJoin('notes.user', 'user')
+      .where('user.id = :id', { id: userId })
+      .andWhere('notes.deleted_at IS NULL');
 
+    if (filters.title != undefined) {
+      queryBuilder.andWhere('LOWER(notes.title) LIKE LOWER(:title)', {
+        title: `%${filters.title}%`,
+      });
+    }
+
+    if (filters.tags != undefined && filters.tags.length !== 0) {
+      queryBuilder.andWhere('tags.id IN (:...tags)', {
+        tags: filters.tags,
+      });
+    }
+
+    const result = await queryBuilder.getMany();
     return result;
   }
 }
