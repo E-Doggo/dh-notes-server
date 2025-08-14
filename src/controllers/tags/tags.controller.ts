@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  Param,
   Post,
   Request,
   UseGuards,
@@ -24,10 +26,20 @@ export class TagsController {
     return await this.tagService.createTag(tag.title, userId);
   }
 
-  @Get('tags_user')
+  @Get('user')
   @UseGuards(AuthGuard('jwt'))
   async getTagsByUser(@Request() req: { user: JWTUserDto }) {
     const userId: string = req.user.id;
     return await this.tagService.getTagsByUser(userId);
+  }
+
+  @Delete('/:id')
+  @UseGuards(AuthGuard('jwt'))
+  async deleteTag(
+    @Param('id') tagId: number,
+    @Request() req: { user: JWTUserDto },
+  ) {
+    const userId: string = req.user.id;
+    return await this.tagService.deleteTag(tagId, userId);
   }
 }

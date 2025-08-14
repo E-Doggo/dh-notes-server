@@ -38,7 +38,10 @@ export class Note {
   @ManyToOne(() => User, (user) => user.notes, { onDelete: 'SET NULL' })
   user: User;
 
-  @ManyToMany(() => Tag, (tag) => tag.notes, { cascade: true })
+  @ManyToMany(() => Tag, (tag) => tag.notes, {
+    cascade: true,
+    onDelete: 'SET NULL',
+  })
   @JoinTable()
   tags: Tag[];
 }

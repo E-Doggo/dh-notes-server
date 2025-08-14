@@ -16,9 +16,9 @@ export class Tag {
   @Column()
   title: string;
 
-  @ManyToMany(() => Note, (note) => note.tags)
+  @ManyToMany(() => Note, (note) => note.tags, { onDelete: 'CASCADE' })
   notes: Note[];
 
-  @ManyToOne(() => User, (user) => user.tags)
+  @ManyToOne(() => User, (user) => user.tags, { onDelete: 'SET NULL' })
   user: User;
 }
