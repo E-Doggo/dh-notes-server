@@ -23,7 +23,7 @@ export class Note {
   @Column()
   content: string;
 
-  @Column()
+  @Column({ default: false })
   is_archived: boolean;
 
   @CreateDateColumn({ type: 'timestamp without time zone' })
@@ -40,7 +40,7 @@ export class Note {
 
   @ManyToMany(() => Tag, (tag) => tag.notes, {
     cascade: true,
-    onDelete: 'SET NULL',
+    onDelete: 'CASCADE',
   })
   @JoinTable()
   tags: Tag[];
