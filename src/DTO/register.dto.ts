@@ -1,5 +1,7 @@
-export interface RegisterDTO {
-  email: string;
-  username: string;
-  password: string;
+import { IsString } from 'class-validator';
+
+export class RegisterDTO {
+  @IsString() email: string;
+  @IsString() username: string;
+  @IsString() password: string;
 }
