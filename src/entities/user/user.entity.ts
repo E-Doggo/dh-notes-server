@@ -7,6 +7,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Note } from '../note/note.entity';
+import { Tag } from '../tags/tags.entity';
 
 @Entity('users')
 export class User {
@@ -33,4 +34,7 @@ export class User {
 
   @OneToMany(() => Note, (note) => note.user)
   notes: Note[];
+
+  @OneToMany(() => Tag, (tag) => tag.user)
+  tags: Tag[];
 }

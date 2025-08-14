@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Request, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { TagsService } from 'src/services/tags/tags.service';
 
@@ -8,7 +8,8 @@ export class TagsController {
 
   @Post('create')
   @UseGuards(AuthGuard('jwt'))
-  async createTag(@Body() tag: { title: string }) {
-    return await this.tagService.createTag(tag.title);
+  async createTag(@Body() tag: { title: string }, @Request() req) {
+    const userId = req.user.userId;
+    return await this.tagService.createTag(tag.title, userId);
   }
 }
