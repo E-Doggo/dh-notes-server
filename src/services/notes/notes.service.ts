@@ -15,10 +15,6 @@ export class NotesService {
   ) {}
 
   async createNote(note: CreateNoteDTO, userId: string) {
-    if (!Array.isArray(note.tagIds) || note.tagIds.length === 0) {
-      throw new Error('tagIds must be a non-empty array');
-    }
-
     const tags = await this.tagRepository.find({
       where: {
         id: In(note.tagIds),
@@ -39,12 +35,7 @@ export class NotesService {
   async getNotesByUser(userId: string): Promise<Note[]> {
     const result = await this.noteRepository
       .createQueryBuilder('notes')
-      .addSelect([
-        'notes.title',
-        'notes.content',
-        'notes.created_at',
-        'notes.updated_at',
-      ])
+      .addSelect('notes')
       .where('notes.user.id = :id', { id: userId })
       .andWhere('notes.deleted_at IS NULL')
       .getMany();
