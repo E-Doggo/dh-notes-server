@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseArrayPipe,
@@ -32,7 +33,7 @@ export class NotesController {
     return await this.noteService.createNote(note, userId);
   }
 
-  @Get('user')
+  @Get('fetch')
   @UseGuards(AuthGuard('jwt'))
   async getNotesByUser(
     @Request() req: { user: JWTUserDto },
@@ -55,7 +56,7 @@ export class NotesController {
     return await this.noteService.getNotesByUser(userId, filters);
   }
 
-  @Get('user/:id')
+  @Get('fetch/:id')
   @UseGuards(AuthGuard('jwt'))
   async getSingleNote(
     @Param('id') id: number,
@@ -66,7 +67,7 @@ export class NotesController {
     return await this.noteService.getSingleNote(id, userId);
   }
 
-  @Put('user/:id')
+  @Put('update/:id')
   @UseGuards(AuthGuard('jwt'))
   async updateNote(
     @Param('id') id: number,
@@ -75,5 +76,15 @@ export class NotesController {
   ) {
     const userId: string = req.user.id;
     return await this.noteService.updateNote(id, body, userId);
+  }
+
+  @Delete('delete/:id')
+  @UseGuards(AuthGuard('jwt'))
+  async deleteNote(
+    @Param('id') id: number,
+    @Request() req: { user: JWTUserDto },
+  ) {
+    const userId: string = req.user.id;
+    return await this.noteService.deleteNote(id, userId);
   }
 }

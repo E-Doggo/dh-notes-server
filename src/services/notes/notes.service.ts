@@ -99,4 +99,16 @@ export class NotesService {
 
     return await this.noteRepository.save(updatedNote);
   }
+
+  async deleteNote(id: number, userId: string) {
+    const note = await this.noteRepository.findOne({
+      where: { id, user: { id: userId } },
+    });
+
+    if (!note) {
+      throw new Error('Note not found or not owned by user');
+    }
+
+    return await this.noteRepository.softDelete({ id });
+  }
 }
