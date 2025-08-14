@@ -15,12 +15,16 @@ export class NotesService {
   ) {}
 
   async createNote(note: CreateNoteDTO, userId: string) {
-    const tags = await this.tagRepository.find({
-      where: {
-        id: In(note.tagIds),
-        user: { id: userId },
-      },
-    });
+    let tags: Tag[];
+
+    if (Array.isArray(note.tagIds) && note.tagIds.length != 0) {
+      tags = await this.tagRepository.find({
+        where: {
+          id: In(note.tagIds),
+          user: { id: userId },
+        },
+      });
+    }
 
     const noteObject: Note = this.noteRepository.create({
       title: note.title,
