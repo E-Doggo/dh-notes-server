@@ -37,6 +37,9 @@ export class User {
   @OneToMany(() => Note, (note) => note.user)
   notes: Note[];
 
+  @OneToMany(() => Note, (note) => note.user)
+  notes: Note[];
+
   @OneToMany(() => Tag, (tag) => tag.user)
   tags: Tag[];
 
