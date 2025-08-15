@@ -90,7 +90,7 @@ export class NotesService {
     return await this.noteRepository.save(note);
   }
 
-  async getNotesByUser(
+  async getNotes(
     userId: string,
     filters: BasicFiltersDTO,
     paginationFilter: PaginationFilterDTO,

@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { User } from 'src/entities/user/user.entity';
@@ -15,7 +20,26 @@ export class AuthService {
   ) {}
 
   async registerUser(data: RegisterDTO) {
-    await this.userService.createUser(data);
+    try {
+      const result = await this.userService.createUser(data);
+
+      if (!result) {
+        throw new HttpException(
+          'User could not be created',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'User registered successfully',
+      };
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'Unexpected error',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async findUserByID(id: string) {

@@ -78,7 +78,7 @@ export class NotesController {
       limit: limit,
     };
 
-    return await this.noteService.getNotesByUser(userId, filters, pagination);
+    return await this.noteService.getNotes(userId, filters, pagination);
   }
 
   @Get('fetch/:id')
@@ -158,7 +158,7 @@ export class NotesController {
       limit: limit,
     };
 
-    return await this.noteService.getNotesByUser(
+    return await this.noteService.getNotes(
       userId,
       filters,
       pagination,
