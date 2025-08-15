@@ -50,6 +50,8 @@ $ npm run test:cov
 
 - For a full tutorial on how to interact with the server please visit [this video](https://google.com) or select the route /api when running the server locally
 
+- The database tables and relations are available [here](https://google.com)
+
 ## Support
 
 Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
