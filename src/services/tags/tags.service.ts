@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Note } from 'src/entities/note/note.entity';
 import { Tag } from 'src/entities/tags/tags.entity';
@@ -42,7 +42,7 @@ export class TagsService {
     });
 
     if (!tag) {
-      throw new Error('Tag not found or not owned by user');
+      throw new HttpException('Tag not found', HttpStatus.NOT_FOUND);
     }
 
     await this.noteRepository

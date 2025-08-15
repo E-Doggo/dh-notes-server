@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateNoteDTO } from 'src/DTO/createNote.dto';
 import { Note } from 'src/entities/note/note.entity';
@@ -11,6 +11,9 @@ import {
 } from 'src/DTO/pagination.dto';
 import { offsetCalculator } from 'src/common/utils/pagCalculator';
 import { FiltersService } from '../filters/filters.service';
+import { NoteHistoryService } from '../note-history/note-history.service';
+import { UpdateNoteDTO } from 'src/DTO/udpateNote.dto';
+import { getTagsById } from 'src/common/utils/getTagIds';
 @Injectable()
 export class NotesService {
   constructor(
@@ -20,27 +23,21 @@ export class NotesService {
     private readonly tagRepository: Repository<Tag>,
 
     private readonly filterService: FiltersService,
+
+    private readonly historyService: NoteHistoryService,
   ) {}
 
   async findNote(id: number, userId: string) {
     const note = await this.noteRepository.findOne({
       where: { id, user: { id: userId } },
+      relations: ['tags'],
     });
 
     return note;
   }
 
   async createNote(note: CreateNoteDTO, userId: string) {
-    let tags: Tag[];
-
-    if (Array.isArray(note.tagIds) && note.tagIds.length != 0) {
-      tags = await this.tagRepository.find({
-        where: {
-          id: In(note.tagIds),
-          user: { id: userId },
-        },
-      });
-    }
+    const tags = await getTagsById(note.tagIds, userId, this.tagRepository);
 
     const noteObject: Note = this.noteRepository.create({
       title: note.title,
@@ -127,23 +124,39 @@ export class NotesService {
     return result;
   }
 
-  async updateNote(id: number, body: Partial<Note>, userId: string) {
+  async updateNote(id: number, body: UpdateNoteDTO, userId: string) {
     const note = await this.findNote(id, userId);
 
     if (!note) {
-      throw new Error('Note not found or not owned by user');
+      throw new HttpException(
+        'Note not found or not owned by user',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const tags = await getTagsById(body.tagIds, userId, this.tagRepository);
+
+    if (tags != undefined) {
+      note.tags = note.tags.concat(tags);
     }
 
     const updatedNote = this.noteRepository.merge(note, body);
 
-    return await this.noteRepository.save(updatedNote);
+    const result = await this.noteRepository.save(updatedNote);
+
+    await this.historyService.createNoteVersion(note, userId);
+
+    return result;
   }
 
   async deleteNote(id: number, userId: string) {
     const note = await this.findNote(id, userId);
 
     if (!note) {
-      throw new Error('Note not found or not owned by user');
+      throw new HttpException(
+        'Note not found or not owned by user',
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     return await this.noteRepository.softDelete({ id });
@@ -152,7 +165,10 @@ export class NotesService {
   async setArchiveStatus(id: number, status: boolean, userId: string) {
     const note = await this.findNote(id, userId);
     if (!note) {
-      throw new Error('Note not found or not owned by user');
+      throw new HttpException(
+        'Note not found or not owned by user',
+        HttpStatus.NOT_FOUND,
+      );
     }
     return await this.noteRepository.update({ id }, { is_archived: status });
   }

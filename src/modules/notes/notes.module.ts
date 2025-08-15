@@ -5,9 +5,14 @@ import { Note } from 'src/entities/note/note.entity';
 import { Tag } from 'src/entities/tags/tags.entity';
 import { NotesService } from 'src/services/notes/notes.service';
 import { FiltersModule } from '../filters/filters.module';
+import { NoteHistoryModule } from '../note-history/note-history.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Note, Tag]), FiltersModule],
+  imports: [
+    TypeOrmModule.forFeature([Note, Tag]),
+    FiltersModule,
+    NoteHistoryModule,
+  ],
   providers: [NotesService],
   controllers: [NotesController],
   exports: [NotesService],
