@@ -242,7 +242,18 @@ export class NotesService {
       );
     }
 
-    return await this.noteRepository.softDelete({ id });
+    const result: UpdateResult = await this.noteRepository.softDelete({ id });
+    if (!result || result.affected === 0) {
+      throw new HttpException(
+        'Could not delete note ',
+        HttpStatus.NOT_MODIFIED,
+      );
+    }
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Note deleted succesfully',
+    };
   }
 
   async setArchiveStatus(id: number, status: boolean, userId: string) {
