@@ -46,9 +46,9 @@ $ npm run test:cov
 
 ## Resources
 
-- To run the project its necessary you add your own .env or download the .env [here] (https://google.com)
+- To run the project its necessary you add your own .env or download the .env [here](https://google.com)
 
-- For a full tutorial on how to interact with the server please visit [this video] (https://google.com) or select the route /api when running the server locally
+- For a full tutorial on how to interact with the server please visit [this video](https://google.com) or select the route /api when running the server locally
 
 ## Support
 
