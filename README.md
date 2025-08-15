@@ -4,7 +4,7 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) This project has been made on NestJS V10.
+This project has been made on [NestJS](https://github.com/nestjs/nest) V10.
 
 ## Project setup
 
