@@ -26,6 +26,7 @@ export class Tag {
   @ManyToMany(() => NoteHistory, (note) => note.tags)
   notesHistory: NoteHistory[];
 
+  @Index()
   @ManyToOne(() => User, (user) => user.tags, { onDelete: 'SET NULL' })
   user: User;
 

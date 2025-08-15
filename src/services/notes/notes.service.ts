@@ -33,6 +33,13 @@ export class NotesService {
       relations: ['tags'],
     });
 
+    if (!note) {
+      throw new HttpException(
+        'Note not found or not owned by user',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
     return note;
   }
 
@@ -88,6 +95,8 @@ export class NotesService {
     filters: BasicFiltersDTO,
     paginationFilter: PaginationFilterDTO,
   ): Promise<PaginationResultDTO> {
+    //calculate offset based on current page and limit.
+    //e.g. if limit = 20 and page = 3 then offset = 40 by the formula (page - 1)* offset
     const { page, limit, offset } = offsetCalculator(
       paginationFilter.page,
       paginationFilter.limit,
@@ -101,10 +110,11 @@ export class NotesService {
       .where('user.id = :id', { id: userId })
       .andWhere('notes.deleted_at IS NULL');
 
+    //Apply filters selected to queryBuilder
     this.applyFilters(queryBuilder, filters);
-
     queryBuilder.skip(offset).take(limit);
 
+    //save the filters passed on query for future use
     await this.filterService.saveFilters(filters, userId);
 
     const [data, total] = await queryBuilder.getManyAndCount();

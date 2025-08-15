@@ -45,6 +45,7 @@ export class TagsService {
       throw new HttpException('Tag not found', HttpStatus.NOT_FOUND);
     }
 
+    //removes tag from notes_tag junction table
     await this.noteRepository
       .createQueryBuilder()
       .relation('notes', 'tags')
@@ -59,6 +60,7 @@ export class TagsService {
         .add(replacementTag);
     }
 
+    //removes respective tag row from tags table
     await this.tagRepository.delete(tagId);
   }
 }

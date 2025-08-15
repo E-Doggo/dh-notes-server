@@ -12,12 +12,15 @@ export class NoteHistoryService {
   ) {}
 
   async createNoteVersion(originalNote: Note, userId: string) {
+    //calculate new version based on original note and current Version
+    //note history where original_note.id = 10 and version = 4 will return nextVersion = 5
+    //and note history where original_note.id = 12 and version = 2 will return nextVersion = 3
+    //avoiding versioning issues
     const lastVersion = await this.historyRepository
       .createQueryBuilder('history')
       .select('MAX(history.version)', 'max')
       .where('history.original_note = :noteId', { noteId: originalNote.id })
       .getRawOne();
-
     const nextVersion = (lastVersion?.max || 0) + 1;
 
     const object = this.historyRepository.create({

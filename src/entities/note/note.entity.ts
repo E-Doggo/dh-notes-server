@@ -40,6 +40,7 @@ export class Note {
   @UpdateDateColumn({ type: 'timestamp without time zone' })
   updated_at: Date;
 
+  @Index()
   @ManyToOne(() => User, (user) => user.notes, { onDelete: 'SET NULL' })
   user: User;
 
