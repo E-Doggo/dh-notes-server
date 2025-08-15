@@ -2,6 +2,7 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -43,14 +44,19 @@ export class AuthService {
   }
 
   async findUserByID(id: string) {
-    return await this.userService.findUserByID(id);
+    const user = await this.userService.findUserByID(id);
+    if (!user) {
+      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+    }
+
+    return user;
   }
 
   async validateUser(data: LoginDTO): Promise<JWTUserDto> {
     const user: User = await this.userService.getPassWordByEmail(data.email);
 
     if (!user) {
-      throw new UnauthorizedException('User Not Found');
+      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
     }
 
     const isPasswordValid: boolean = await compare(
@@ -58,7 +64,7 @@ export class AuthService {
       user.password_hash,
     );
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Wrong password');
+      throw new HttpException('Incorrect Password', HttpStatus.UNAUTHORIZED);
     }
 
     const payload: JWTUserDto = {
