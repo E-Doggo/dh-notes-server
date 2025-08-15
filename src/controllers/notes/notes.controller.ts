@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpException,
+  HttpStatus,
   Param,
   ParseArrayPipe,
   Post,
@@ -37,15 +39,22 @@ export class NotesController {
     return await this.noteService.createNote(note, userId);
   }
 
-  @Post('restore/:noteId/:version')
+  @Post('restore/:noteId/')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(['admin', 'user'])
   async restoreNoteVersion(
     @Param('noteId') noteId: number,
-    @Param('version') version: number,
+    @Query('version') version: number,
     @Request() req: { user: JWTUserDto },
   ) {
     const userId: string = req.user.id;
+
+    if (version == undefined) {
+      throw new HttpException(
+        'Version cannot be undefined',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
 
     return await this.noteService.restoreNoteVersion(noteId, version, userId);
   }
