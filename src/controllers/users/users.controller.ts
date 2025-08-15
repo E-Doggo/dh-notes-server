@@ -1,5 +1,6 @@
 import { Controller, Get, Request, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { Roles } from 'src/common/decorators/roles/roles.decorator';
 import { JWTUserDto } from 'src/DTO/jwtUser.dto';
 import { UsersService } from 'src/services/users/users.service';
 
@@ -10,6 +11,14 @@ export class UsersController {
   @Get('profile')
   @UseGuards(AuthGuard('jwt'))
   async getProfile(@Request() req: { user: JWTUserDto }) {
+    const userId: string = req.user.id;
+    return await this.service.findUserByID(userId);
+  }
+
+  @Get('profile')
+  @UseGuards(AuthGuard('jwt'))
+  @Roles(['admin'])
+  async getAllProfiles(@Request() req: { user: JWTUserDto }) {
     const userId: string = req.user.id;
     return await this.service.findUserByID(userId);
   }
