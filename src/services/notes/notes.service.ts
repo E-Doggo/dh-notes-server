@@ -174,11 +174,11 @@ export class NotesService {
       note.tags = note.tags.concat(tags);
     }
 
+    await this.historyService.createNoteVersion(note, userId);
+
     const updatedNote = this.noteRepository.merge(note, body);
 
     const result = await this.noteRepository.save(updatedNote);
-
-    await this.historyService.createNoteVersion(note, userId);
 
     return result;
   }
