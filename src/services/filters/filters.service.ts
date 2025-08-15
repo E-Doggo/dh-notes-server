@@ -31,7 +31,10 @@ export class FiltersService {
     const result = await this.repositoryFilters
       .createQueryBuilder('filters')
       .select('filters')
-      .leftJoinAndSelect('filters.user', 'user')
+      .leftJoin('filters.user', 'user')
+      .addSelect(['user.id', 'user.username', 'user.email'])
+      .leftJoin('filters.tags', 'tags')
+      .addSelect('tags.id')
       .where('user.id = :id', { id: userId })
       .getOne();
 
