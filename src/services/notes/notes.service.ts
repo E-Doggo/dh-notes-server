@@ -94,7 +94,7 @@ export class NotesService {
     userId: string,
     filters: BasicFiltersDTO,
     paginationFilter: PaginationFilterDTO,
-  ): Promise<PaginationResultDTO> {
+  ): Promise<PaginationResultDTO<Note>> {
     //calculate offset based on current page and limit.
     //e.g. if limit = 20 and page = 3 then offset = 40 by the formula (page - 1)* offset
     const { page, limit, offset } = offsetCalculator(
@@ -119,7 +119,7 @@ export class NotesService {
 
     const [data, total] = await queryBuilder.getManyAndCount();
 
-    const result: PaginationResultDTO = {
+    const result: PaginationResultDTO<Note> = {
       data: data,
       total: total,
       limit: limit,

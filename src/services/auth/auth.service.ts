@@ -5,6 +5,7 @@ import { User } from 'src/entities/user/user.entity';
 import { RegisterDTO } from 'src/DTO/register.dto';
 import { compare } from 'bcrypt';
 import { LoginDTO } from 'src/DTO/login.dto';
+import { JWTUserDto } from 'src/DTO/jwtUser.dto';
 
 @Injectable()
 export class AuthService {
@@ -21,9 +22,7 @@ export class AuthService {
     return await this.userService.findUserByID(id);
   }
 
-  async validateUser(
-    data: LoginDTO,
-  ): Promise<{ id: string; username: string }> {
+  async validateUser(data: LoginDTO): Promise<JWTUserDto> {
     const user: User = await this.userService.getPassWordByEmail(data.email);
 
     if (!user) {
@@ -38,13 +37,19 @@ export class AuthService {
       throw new UnauthorizedException('Wrong password');
     }
 
-    return { id: user.id, username: user.username };
+    const payload: JWTUserDto = {
+      id: user.id,
+      username: user.username,
+      role: user.role,
+    };
+
+    return payload;
   }
 
   async login(data: LoginDTO) {
-    const user = await this.validateUser(data);
+    const user: JWTUserDto = await this.validateUser(data);
 
-    const payload = { username: user.username, sub: user.id };
+    const payload = { username: user.username, sub: user.id, role: user.role };
 
     const token = this.jwtService.sign(payload);
 
