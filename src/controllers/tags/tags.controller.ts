@@ -42,8 +42,6 @@ export class TagsController {
     @Request() req: { user: JWTUserDto },
     @Query('replacementTag') replacementTag?: number,
   ) {
-    console.log(replacementTag);
-
     const userId: string = req.user.id;
     return await this.tagService.deleteTag(tagId, userId, replacementTag);
   }

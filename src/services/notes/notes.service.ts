@@ -155,7 +155,7 @@ export class NotesService {
   }
 
   async getSingleNote(id: number, userId: string) {
-    const result = this.noteRepository
+    const result = await this.noteRepository
       .createQueryBuilder('notes')
       .addSelect('notes')
       .innerJoinAndSelect('notes.tags', 'tags')
@@ -164,6 +164,12 @@ export class NotesService {
       .andWhere('notes.id = :id', { id: id })
       .andWhere('notes.deleted_at IS NULL')
       .getOne();
+
+    if (!result)
+      throw new HttpException(
+        'Note not found or not owned by user',
+        HttpStatus.NOT_FOUND,
+      );
 
     return result;
   }

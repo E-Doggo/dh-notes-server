@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entities/user/user.entity';
 import { Repository } from 'typeorm';
@@ -30,10 +30,15 @@ export class UsersService {
   }
 
   async getPassWordByEmail(email: string): Promise<User> {
-    return await this.repository.findOne({
+    const result = await this.repository.findOne({
       where: { email: email },
       select: ['password_hash', 'id', 'username'],
     });
+    if (!result) {
+      throw new HttpException('Email not Found', HttpStatus.NOT_FOUND);
+    }
+
+    return result;
   }
 
   async findUserByID(id: string): Promise<User> {
@@ -42,6 +47,10 @@ export class UsersService {
       .select(['users.id', 'users.username', 'users.email', 'users.is_active'])
       .where('users.id = :id', { id })
       .getOne();
+
+    if (!result) {
+      throw new HttpException('User not Found', HttpStatus.NOT_FOUND);
+    }
 
     return result;
   }
