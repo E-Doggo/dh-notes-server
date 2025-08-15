@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateNoteDTO } from 'src/DTO/createNote.dto';
 import { Note } from 'src/entities/note/note.entity';
-import { In, Repository, SelectQueryBuilder } from 'typeorm';
+import { In, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { Tag } from 'src/entities/tags/tags.entity';
 import { BasicFiltersDTO } from 'src/DTO/basicFilters.dto';
 import {
@@ -90,11 +90,12 @@ export class NotesService {
     return await this.noteRepository.save(note);
   }
 
-  async getNotesByUser(
+  async getNotes(
     userId: string,
     filters: BasicFiltersDTO,
     paginationFilter: PaginationFilterDTO,
-  ): Promise<PaginationResultDTO> {
+    userRole?: string,
+  ): Promise<PaginationResultDTO<Note>> {
     //calculate offset based on current page and limit.
     //e.g. if limit = 20 and page = 3 then offset = 40 by the formula (page - 1)* offset
     const { page, limit, offset } = offsetCalculator(
@@ -106,12 +107,12 @@ export class NotesService {
       .createQueryBuilder('notes')
       .addSelect('notes')
       .leftJoinAndSelect('notes.tags', 'tags')
-      .leftJoin('notes.user', 'user')
-      .where('user.id = :id', { id: userId })
-      .andWhere('notes.deleted_at IS NULL');
+      .leftJoin('notes.user', 'user');
 
-    //Apply filters selected to queryBuilder
+    this.checkUserRole(queryBuilder, userId, userRole ?? 'user');
     this.applyFilters(queryBuilder, filters);
+    console.log('yey');
+
     queryBuilder.skip(offset).take(limit);
 
     //save the filters passed on query for future use
@@ -119,7 +120,7 @@ export class NotesService {
 
     const [data, total] = await queryBuilder.getManyAndCount();
 
-    const result: PaginationResultDTO = {
+    const result: PaginationResultDTO<Note> = {
       data: data,
       total: total,
       limit: limit,
@@ -127,6 +128,28 @@ export class NotesService {
     };
 
     return result;
+  }
+
+  checkUserRole(
+    queryBuilder: SelectQueryBuilder<Note>,
+    userId: string,
+    role: string,
+  ) {
+    if (role === 'admin') {
+      queryBuilder.addSelect([
+        'user.id',
+        'user.username',
+        'user.email',
+        'user.is_active',
+        'user.role',
+      ]);
+    } else {
+      queryBuilder
+        .where('user.id = :id', { id: userId })
+        .andWhere('notes.deleted_at IS NULL');
+    }
+
+    return queryBuilder;
   }
 
   applyFilters(
@@ -155,7 +178,7 @@ export class NotesService {
   }
 
   async getSingleNote(id: number, userId: string) {
-    const result = this.noteRepository
+    const result = await this.noteRepository
       .createQueryBuilder('notes')
       .addSelect('notes')
       .innerJoinAndSelect('notes.tags', 'tags')
@@ -164,6 +187,12 @@ export class NotesService {
       .andWhere('notes.id = :id', { id: id })
       .andWhere('notes.deleted_at IS NULL')
       .getOne();
+
+    if (!result)
+      throw new HttpException(
+        'Note not found or not owned by user',
+        HttpStatus.NOT_FOUND,
+      );
 
     return result;
   }
@@ -190,7 +219,17 @@ export class NotesService {
 
     const result = await this.noteRepository.save(updatedNote);
 
-    return result;
+    if (!result) {
+      throw new HttpException(
+        'Could not update note values',
+        HttpStatus.NOT_MODIFIED,
+      );
+    }
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Note values updated succesfully',
+    };
   }
 
   async deleteNote(id: number, userId: string) {
@@ -203,7 +242,18 @@ export class NotesService {
       );
     }
 
-    return await this.noteRepository.softDelete({ id });
+    const result: UpdateResult = await this.noteRepository.softDelete({ id });
+    if (!result || result.affected === 0) {
+      throw new HttpException(
+        'Could not delete note ',
+        HttpStatus.NOT_MODIFIED,
+      );
+    }
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Note deleted succesfully',
+    };
   }
 
   async setArchiveStatus(id: number, status: boolean, userId: string) {
@@ -214,6 +264,21 @@ export class NotesService {
         HttpStatus.NOT_FOUND,
       );
     }
-    return await this.noteRepository.update({ id }, { is_archived: status });
+    const result: UpdateResult = await this.noteRepository.update(
+      { id },
+      { is_archived: status },
+    );
+
+    if (!result || result.affected === 0) {
+      throw new HttpException(
+        'Could not update note status',
+        HttpStatus.NOT_MODIFIED,
+      );
+    }
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Note status updated succesfully',
+    };
   }
 }

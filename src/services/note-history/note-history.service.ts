@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { NoteHistory } from 'src/entities/note-history/noteHistory.entity';
 import { Note } from 'src/entities/note/note.entity';
@@ -33,6 +33,13 @@ export class NoteHistoryService {
     });
 
     const result = await this.historyRepository.save(object);
+
+    if (!result) {
+      throw new HttpException(
+        'Could not save note to history',
+        HttpStatus.NOT_IMPLEMENTED,
+      );
+    }
 
     return result;
   }
