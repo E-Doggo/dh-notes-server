@@ -14,17 +14,30 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiParam, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiExtraModels,
+  ApiParam,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles/roles.decorator';
 import { RolesGuard } from 'src/common/guards/roles/roles.guard';
 import { BasicFiltersDTO } from 'src/DTO/basicFilters.dto';
 import { CreateNoteDTO } from 'src/DTO/createNote.dto';
 import { JWTUserDto } from 'src/DTO/jwtUser.dto';
-import { PaginationFilterDTO } from 'src/DTO/pagination.dto';
+import {
+  PaginationFilterDTO,
+  PaginationResultDTO,
+} from 'src/DTO/pagination.dto';
 import { UpdateNoteDTO } from 'src/DTO/udpateNote.dto';
 import { NotesService } from 'src/services/notes/notes.service';
 
+@ApiBearerAuth()
 @Controller('notes')
+@ApiTags('Notes')
+@ApiExtraModels(PaginationFilterDTO)
+@ApiExtraModels(PaginationResultDTO)
 export class NotesController {
   constructor(private readonly noteService: NotesService) {}
 
@@ -155,13 +168,23 @@ export class NotesController {
   @Put('archive/:id')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(['admin', 'user'])
-  async setArchiveStatus(
+  async archiveNote(
     @Param('id') id: number,
-    @Body('archived') archived: boolean,
     @Request() req: { user: JWTUserDto },
   ) {
     const userId: string = req.user.id;
-    return await this.noteService.setArchiveStatus(id, archived, userId);
+    return await this.noteService.setArchiveStatus(id, true, userId);
+  }
+
+  @Put('dearchive/:id')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(['admin', 'user'])
+  async restoreNoteArchivation(
+    @Param('id') id: number,
+    @Request() req: { user: JWTUserDto },
+  ) {
+    const userId: string = req.user.id;
+    return await this.noteService.setArchiveStatus(id, false, userId);
   }
 
   @Delete('delete/:id')

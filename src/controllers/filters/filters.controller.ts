@@ -7,12 +7,15 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles/roles.decorator';
 import { RolesGuard } from 'src/common/guards/roles/roles.guard';
 import { BasicFiltersDTO } from 'src/DTO/basicFilters.dto';
 import { FiltersService } from 'src/services/filters/filters.service';
 
+@ApiBearerAuth()
 @Controller('filters')
+@ApiTags('Filters')
 export class FiltersController {
   constructor(private readonly filterService: FiltersService) {}
 

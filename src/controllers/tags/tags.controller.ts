@@ -11,12 +11,15 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles/roles.decorator';
 import { RolesGuard } from 'src/common/guards/roles/roles.guard';
 import { JWTUserDto } from 'src/DTO/jwtUser.dto';
 import { TagsService } from 'src/services/tags/tags.service';
 
+@ApiBearerAuth()
 @Controller('tags')
+@ApiTags('Tags')
 export class TagsController {
   constructor(private readonly tagService: TagsService) {}
 
