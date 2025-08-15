@@ -34,7 +34,6 @@ export class NoteHistory {
   @ManyToOne(() => User, (user) => user.notesHistory, { onDelete: 'SET NULL' })
   user: User;
 
-  @Column({})
-  @Generated('increment')
+  @Column()
   version: number;
 }

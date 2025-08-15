@@ -49,6 +49,40 @@ export class NotesService {
     return await this.noteRepository.save(noteObject);
   }
 
+  async restoreNoteVersion(noteId: number, version: number, userId: string) {
+    const previousNote = await this.historyService.findNoteByVersion(
+      noteId,
+      version,
+      userId,
+    );
+    if (!previousNote) {
+      throw new HttpException(
+        'Could not find specified version',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const note = await this.noteRepository.findOne({
+      where: { id: noteId, user: { id: userId } },
+      relations: ['tags'],
+    });
+
+    if (!note) {
+      throw new HttpException(
+        'Original note not found or not owned by user',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    await this.historyService.createNoteVersion(note, userId);
+
+    note.title = previousNote.title;
+    note.content = previousNote.content;
+    note.tags = previousNote.tags;
+
+    return await this.noteRepository.save(note);
+  }
+
   async getNotesByUser(
     userId: string,
     filters: BasicFiltersDTO,
