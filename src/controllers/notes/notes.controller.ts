@@ -14,13 +14,14 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiParam, ApiQuery } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles/roles.decorator';
 import { RolesGuard } from 'src/common/guards/roles/roles.guard';
 import { BasicFiltersDTO } from 'src/DTO/basicFilters.dto';
 import { CreateNoteDTO } from 'src/DTO/createNote.dto';
 import { JWTUserDto } from 'src/DTO/jwtUser.dto';
 import { PaginationFilterDTO } from 'src/DTO/pagination.dto';
-import { Note } from 'src/entities/note/note.entity';
+import { UpdateNoteDTO } from 'src/DTO/udpateNote.dto';
 import { NotesService } from 'src/services/notes/notes.service';
 
 @Controller('notes')
@@ -42,6 +43,16 @@ export class NotesController {
   @Post('restore/:noteId/')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(['admin', 'user'])
+  @ApiParam({
+    name: 'noteId',
+    required: true,
+    description: 'Note that will be restored to previous versions',
+  })
+  @ApiQuery({
+    name: 'version',
+    required: true,
+    description: 'Version the note will be restored to',
+  })
   async restoreNoteVersion(
     @Param('noteId') noteId: number,
     @Query('version') version: number,
@@ -62,6 +73,33 @@ export class NotesController {
   @Get('fetch')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(['admin', 'user'])
+  @ApiQuery({
+    name: 'title',
+    required: false,
+    description:
+      'Title by wich the notes will be filtered (complete or incomplete title)',
+  })
+  @ApiQuery({
+    name: 'content',
+    required: false,
+    description: 'Portion of content by which the notes will be filtered',
+  })
+  @ApiQuery({
+    name: 'tags',
+    required: false,
+    type: [Number],
+    description: 'Tags by which the notes will be filtered',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'page number to fetch respective data',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'limit of data rows per page fetched',
+  })
   async getNotesByUser(
     @Request() req: { user: JWTUserDto },
     @Query('title') title?: string,
@@ -107,7 +145,7 @@ export class NotesController {
   @Roles(['admin', 'user'])
   async updateNote(
     @Param('id') id: number,
-    @Body() body: Partial<Note>,
+    @Body() body: UpdateNoteDTO,
     @Request() req: { user: JWTUserDto },
   ) {
     const userId: string = req.user.id;

@@ -111,7 +111,6 @@ export class NotesService {
 
     this.checkUserRole(queryBuilder, userId, userRole ?? 'user');
     this.applyFilters(queryBuilder, filters);
-    console.log('yey');
 
     queryBuilder.skip(offset).take(limit);
 
