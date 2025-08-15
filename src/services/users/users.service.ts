@@ -69,7 +69,7 @@ export class UsersService {
     );
 
     const queryBuilder = this.repository
-      .createQueryBuilder('users')
+      .createQueryBuilder('user')
       .addSelect([
         'user.id',
         'user.email',
@@ -77,6 +77,8 @@ export class UsersService {
         'user.is_active',
         'user.role',
       ]);
+
+    console.log(page, limit, offset);
 
     queryBuilder.skip(offset).take(limit);
     const [data, total] = await queryBuilder.getManyAndCount();

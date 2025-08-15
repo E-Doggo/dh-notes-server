@@ -14,10 +14,6 @@ async function bootstrap() {
     }),
   );
 
-  const reflector = new Reflector();
-
-  app.useGlobalGuards(new RolesGuard(reflector));
-
   app.useGlobalFilters(new AllExceptionsFilter());
 
   await app.listen(process.env.PORT ?? 3000);

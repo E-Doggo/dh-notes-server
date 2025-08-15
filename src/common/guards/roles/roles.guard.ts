@@ -19,10 +19,7 @@ export class RolesGuard implements CanActivate {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
-    const roles = this.reflector.getAllAndOverride<string[]>('roles', [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+    const roles = this.reflector.get<string[]>('roles', context.getHandler());
     if (!roles || roles.length === 0) return true;
     const request: { user: JWTUserDto } = context.switchToHttp().getRequest();
 
@@ -31,7 +28,7 @@ export class RolesGuard implements CanActivate {
     }
     if (!roles.includes(request.user.role)) {
       throw new ForbiddenException(
-        `Role "${request.user.role}" is not allowed`,
+        'You do not have the required permissions for this action',
       );
     }
 
