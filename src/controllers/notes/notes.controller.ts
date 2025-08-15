@@ -34,6 +34,18 @@ export class NotesController {
     return await this.noteService.createNote(note, userId);
   }
 
+  @Post('restore/:noteId/:version')
+  @UseGuards(AuthGuard('jwt'))
+  async restoreNoteVersion(
+    @Param('noteId') noteId: number,
+    @Param('version') version: number,
+    @Request() req: { user: JWTUserDto },
+  ) {
+    const userId: string = req.user.id;
+
+    return await this.noteService.restoreNoteVersion(noteId, version, userId);
+  }
+
   @Get('fetch')
   @UseGuards(AuthGuard('jwt'))
   async getNotesByUser(
