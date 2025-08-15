@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateNoteDTO } from 'src/DTO/createNote.dto';
 import { Note } from 'src/entities/note/note.entity';
-import { In, Repository } from 'typeorm';
+import { In, Repository, SelectQueryBuilder } from 'typeorm';
 import { Tag } from 'src/entities/tags/tags.entity';
 import { BasicFiltersDTO } from 'src/DTO/basicFilters.dto';
 import {
@@ -11,7 +11,6 @@ import {
 } from 'src/DTO/pagination.dto';
 import { offsetCalculator } from 'src/common/utils/pagCalculator';
 import { FiltersService } from '../filters/filters.service';
-
 @Injectable()
 export class NotesService {
   constructor(
@@ -71,6 +70,28 @@ export class NotesService {
       .where('user.id = :id', { id: userId })
       .andWhere('notes.deleted_at IS NULL');
 
+    this.applyFilters(queryBuilder, filters);
+
+    queryBuilder.skip(offset).take(limit);
+
+    await this.filterService.saveFilters(filters, userId);
+
+    const [data, total] = await queryBuilder.getManyAndCount();
+
+    const result: PaginationResultDTO = {
+      data: data,
+      total: total,
+      limit: limit,
+      page: page,
+    };
+
+    return result;
+  }
+
+  applyFilters(
+    queryBuilder: SelectQueryBuilder<Note>,
+    filters: BasicFiltersDTO,
+  ) {
     if (filters.title != undefined) {
       queryBuilder.andWhere('notes.title ILIKE :title', {
         title: `${filters.title}%`,
@@ -89,20 +110,7 @@ export class NotesService {
         .andWhere('filterTags.id IN (:...tags)', { tags: filters.tags });
     }
 
-    queryBuilder.skip(offset).take(limit);
-
-    await this.filterService.saveFilters(filters, userId);
-
-    const [data, total] = await queryBuilder.getManyAndCount();
-
-    const result: PaginationResultDTO = {
-      data: data,
-      total: total,
-      limit: limit,
-      page: page,
-    };
-
-    return result;
+    return queryBuilder;
   }
 
   async getSingleNote(id: number, userId: string) {
