@@ -13,9 +13,9 @@ export class PaginationFilterDTO {
   page: number;
 }
 
-export class PaginationResultDTO {
+export class PaginationResultDTO<T> {
   @IsInt() page;
   @IsInt() limit;
   @IsInt() total;
-  data: any[];
+  data: T[];
 }

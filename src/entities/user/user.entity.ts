@@ -11,6 +11,7 @@ import { Note } from '../note/note.entity';
 import { Tag } from '../tags/tags.entity';
 import { Filters } from '../filters/filters.entity';
 import { NoteHistory } from '../note-history/noteHistory.entity';
+import { RolesEnum } from 'src/common/enums/rolesEnum';
 
 @Entity('users')
 export class User {
@@ -34,6 +35,9 @@ export class User {
 
   @Column({ default: true })
   is_active: boolean;
+
+  @Column({ type: 'enum', enum: RolesEnum, default: RolesEnum.user })
+  role: RolesEnum;
 
   @OneToMany(() => Note, (note) => note.user)
   notes: Note[];
