@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateNoteDTO } from 'src/DTO/createNote.dto';
 import { Note } from 'src/entities/note/note.entity';
-import { In, Repository, SelectQueryBuilder } from 'typeorm';
+import { In, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { Tag } from 'src/entities/tags/tags.entity';
 import { BasicFiltersDTO } from 'src/DTO/basicFilters.dto';
 import {
@@ -219,7 +219,17 @@ export class NotesService {
 
     const result = await this.noteRepository.save(updatedNote);
 
-    return result;
+    if (!result) {
+      throw new HttpException(
+        'Could not update note values',
+        HttpStatus.NOT_MODIFIED,
+      );
+    }
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Note values updated succesfully',
+    };
   }
 
   async deleteNote(id: number, userId: string) {
@@ -243,6 +253,21 @@ export class NotesService {
         HttpStatus.NOT_FOUND,
       );
     }
-    return await this.noteRepository.update({ id }, { is_archived: status });
+    const result: UpdateResult = await this.noteRepository.update(
+      { id },
+      { is_archived: status },
+    );
+
+    if (!result || result.affected === 0) {
+      throw new HttpException(
+        'Could not update note status',
+        HttpStatus.NOT_MODIFIED,
+      );
+    }
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Note status updated succesfully',
+    };
   }
 }
