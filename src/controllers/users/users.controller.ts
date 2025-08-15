@@ -18,7 +18,7 @@ export class UsersController {
   }
 
   @Get('all')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(['admin'])
   async getAllProfiles(
     @Request() req: { user: JWTUserDto },

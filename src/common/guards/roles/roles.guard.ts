@@ -1,4 +1,9 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { JWTUserDto } from 'src/DTO/jwtUser.dto';
@@ -14,10 +19,22 @@ export class RolesGuard implements CanActivate {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
-    const roles = this.reflector.get<string[]>('roles', context.getHandler());
-    if (!roles) return true;
+    const roles = this.reflector.getAllAndOverride<string[]>('roles', [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+    if (!roles || roles.length === 0) return true;
     const request: { user: JWTUserDto } = context.switchToHttp().getRequest();
-    const user = request.user;
-    return this.matchRoles(roles, user.role);
+
+    if (!request.user) {
+      throw new ForbiddenException('No user found in request');
+    }
+    if (!roles.includes(request.user.role)) {
+      throw new ForbiddenException(
+        `Role "${request.user.role}" is not allowed`,
+      );
+    }
+
+    return true;
   }
 }
