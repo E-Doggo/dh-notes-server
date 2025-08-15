@@ -15,6 +15,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { BasicFiltersDTO } from 'src/DTO/basicFilters.dto';
 import { CreateNoteDTO } from 'src/DTO/createNote.dto';
 import { JWTUserDto } from 'src/DTO/jwtUser.dto';
+import { PaginationFilterDTO } from 'src/DTO/pagination.dto';
 import { Note } from 'src/entities/note/note.entity';
 import { NotesService } from 'src/services/notes/notes.service';
 
@@ -33,6 +34,18 @@ export class NotesController {
     return await this.noteService.createNote(note, userId);
   }
 
+  @Post('restore/:noteId/:version')
+  @UseGuards(AuthGuard('jwt'))
+  async restoreNoteVersion(
+    @Param('noteId') noteId: number,
+    @Param('version') version: number,
+    @Request() req: { user: JWTUserDto },
+  ) {
+    const userId: string = req.user.id;
+
+    return await this.noteService.restoreNoteVersion(noteId, version, userId);
+  }
+
   @Get('fetch')
   @UseGuards(AuthGuard('jwt'))
   async getNotesByUser(
@@ -44,6 +57,8 @@ export class NotesController {
       new ParseArrayPipe({ items: Number, separator: ',', optional: true }),
     )
     tags?: number[],
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
   ) {
     const userId: string = req.user.id;
 
@@ -53,7 +68,12 @@ export class NotesController {
       tags: tags,
     };
 
-    return await this.noteService.getNotesByUser(userId, filters);
+    const pagination: PaginationFilterDTO = {
+      page: page,
+      limit: limit,
+    };
+
+    return await this.noteService.getNotesByUser(userId, filters, pagination);
   }
 
   @Get('fetch/:id')

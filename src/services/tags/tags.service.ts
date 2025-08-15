@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Note } from 'src/entities/note/note.entity';
 import { Tag } from 'src/entities/tags/tags.entity';
@@ -42,9 +42,10 @@ export class TagsService {
     });
 
     if (!tag) {
-      throw new Error('Tag not found or not owned by user');
+      throw new HttpException('Tag not found', HttpStatus.NOT_FOUND);
     }
 
+    //removes tag from notes_tag junction table
     await this.noteRepository
       .createQueryBuilder()
       .relation('notes', 'tags')
@@ -52,8 +53,6 @@ export class TagsService {
       .remove(tag.id);
 
     if (replacementTag != undefined) {
-      console.log('q');
-
       await this.noteRepository
         .createQueryBuilder()
         .relation('notes', 'tags')
@@ -61,6 +60,7 @@ export class TagsService {
         .add(replacementTag);
     }
 
+    //removes respective tag row from tags table
     await this.tagRepository.delete(tagId);
   }
 }

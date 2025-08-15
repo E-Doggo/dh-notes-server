@@ -3,21 +3,26 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  Index,
   JoinTable,
   ManyToMany,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../user/user.entity';
 import { Tag } from '../tags/tags.entity';
+import { NoteHistory } from '../note-history/noteHistory.entity';
 
 @Entity('notes')
+@Index(['user', 'is_archived'])
 export class Note {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
+  @Index()
   title: string;
 
   @Column()
@@ -35,8 +40,12 @@ export class Note {
   @UpdateDateColumn({ type: 'timestamp without time zone' })
   updated_at: Date;
 
+  @Index()
   @ManyToOne(() => User, (user) => user.notes, { onDelete: 'SET NULL' })
   user: User;
+
+  @OneToMany(() => NoteHistory, (history) => history.original_note)
+  versions: NoteHistory[];
 
   @ManyToMany(() => Tag, (tag) => tag.notes, {
     cascade: true,

@@ -1,12 +1,19 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateNoteDTO } from 'src/DTO/createNote.dto';
 import { Note } from 'src/entities/note/note.entity';
-import { In, Repository } from 'typeorm';
+import { In, Repository, SelectQueryBuilder } from 'typeorm';
 import { Tag } from 'src/entities/tags/tags.entity';
 import { BasicFiltersDTO } from 'src/DTO/basicFilters.dto';
-import { filter } from 'rxjs';
-
+import {
+  PaginationFilterDTO,
+  PaginationResultDTO,
+} from 'src/DTO/pagination.dto';
+import { offsetCalculator } from 'src/common/utils/pagCalculator';
+import { FiltersService } from '../filters/filters.service';
+import { NoteHistoryService } from '../note-history/note-history.service';
+import { UpdateNoteDTO } from 'src/DTO/udpateNote.dto';
+import { getTagsById } from 'src/common/utils/getTagIds';
 @Injectable()
 export class NotesService {
   constructor(
@@ -14,27 +21,30 @@ export class NotesService {
     private readonly noteRepository: Repository<Note>,
     @InjectRepository(Tag)
     private readonly tagRepository: Repository<Tag>,
+
+    private readonly filterService: FiltersService,
+
+    private readonly historyService: NoteHistoryService,
   ) {}
 
   async findNote(id: number, userId: string) {
     const note = await this.noteRepository.findOne({
       where: { id, user: { id: userId } },
+      relations: ['tags'],
     });
+
+    if (!note) {
+      throw new HttpException(
+        'Note not found or not owned by user',
+        HttpStatus.NOT_FOUND,
+      );
+    }
 
     return note;
   }
 
   async createNote(note: CreateNoteDTO, userId: string) {
-    let tags: Tag[];
-
-    if (Array.isArray(note.tagIds) && note.tagIds.length != 0) {
-      tags = await this.tagRepository.find({
-        where: {
-          id: In(note.tagIds),
-          user: { id: userId },
-        },
-      });
-    }
+    const tags = await getTagsById(note.tagIds, userId, this.tagRepository);
 
     const noteObject: Note = this.noteRepository.create({
       title: note.title,
@@ -46,10 +56,52 @@ export class NotesService {
     return await this.noteRepository.save(noteObject);
   }
 
+  async restoreNoteVersion(noteId: number, version: number, userId: string) {
+    const previousNote = await this.historyService.findNoteByVersion(
+      noteId,
+      version,
+      userId,
+    );
+    if (!previousNote) {
+      throw new HttpException(
+        'Could not find specified version',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const note = await this.noteRepository.findOne({
+      where: { id: noteId, user: { id: userId } },
+      relations: ['tags'],
+    });
+
+    if (!note) {
+      throw new HttpException(
+        'Original note not found or not owned by user',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    await this.historyService.createNoteVersion(note, userId);
+
+    note.title = previousNote.title;
+    note.content = previousNote.content;
+    note.tags = previousNote.tags;
+
+    return await this.noteRepository.save(note);
+  }
+
   async getNotesByUser(
     userId: string,
     filters: BasicFiltersDTO,
-  ): Promise<Note[]> {
+    paginationFilter: PaginationFilterDTO,
+  ): Promise<PaginationResultDTO> {
+    //calculate offset based on current page and limit.
+    //e.g. if limit = 20 and page = 3 then offset = 40 by the formula (page - 1)* offset
+    const { page, limit, offset } = offsetCalculator(
+      paginationFilter.page,
+      paginationFilter.limit,
+    );
+
     const queryBuilder = this.noteRepository
       .createQueryBuilder('notes')
       .addSelect('notes')
@@ -58,15 +110,38 @@ export class NotesService {
       .where('user.id = :id', { id: userId })
       .andWhere('notes.deleted_at IS NULL');
 
+    //Apply filters selected to queryBuilder
+    this.applyFilters(queryBuilder, filters);
+    queryBuilder.skip(offset).take(limit);
+
+    //save the filters passed on query for future use
+    await this.filterService.saveFilters(filters, userId);
+
+    const [data, total] = await queryBuilder.getManyAndCount();
+
+    const result: PaginationResultDTO = {
+      data: data,
+      total: total,
+      limit: limit,
+      page: page,
+    };
+
+    return result;
+  }
+
+  applyFilters(
+    queryBuilder: SelectQueryBuilder<Note>,
+    filters: BasicFiltersDTO,
+  ) {
     if (filters.title != undefined) {
-      queryBuilder.andWhere('LOWER(notes.title) LIKE LOWER(:title)', {
-        title: `%${filters.title}%`,
+      queryBuilder.andWhere('notes.title ILIKE :title', {
+        title: `${filters.title}%`,
       });
     }
 
     if (filters.content != undefined) {
-      queryBuilder.andWhere('LOWER(notes.content) LIKE LOWER(:content)', {
-        content: `%${filters.content}%`,
+      queryBuilder.andWhere('notes.content ILIKE :content', {
+        content: `${filters.content}%`,
       });
     }
 
@@ -76,8 +151,7 @@ export class NotesService {
         .andWhere('filterTags.id IN (:...tags)', { tags: filters.tags });
     }
 
-    const result = await queryBuilder.getMany();
-    return result;
+    return queryBuilder;
   }
 
   async getSingleNote(id: number, userId: string) {
@@ -94,23 +168,39 @@ export class NotesService {
     return result;
   }
 
-  async updateNote(id: number, body: Partial<Note>, userId: string) {
+  async updateNote(id: number, body: UpdateNoteDTO, userId: string) {
     const note = await this.findNote(id, userId);
 
     if (!note) {
-      throw new Error('Note not found or not owned by user');
+      throw new HttpException(
+        'Note not found or not owned by user',
+        HttpStatus.NOT_FOUND,
+      );
     }
+
+    const tags = await getTagsById(body.tagIds, userId, this.tagRepository);
+
+    if (tags != undefined) {
+      note.tags = note.tags.concat(tags);
+    }
+
+    await this.historyService.createNoteVersion(note, userId);
 
     const updatedNote = this.noteRepository.merge(note, body);
 
-    return await this.noteRepository.save(updatedNote);
+    const result = await this.noteRepository.save(updatedNote);
+
+    return result;
   }
 
   async deleteNote(id: number, userId: string) {
     const note = await this.findNote(id, userId);
 
     if (!note) {
-      throw new Error('Note not found or not owned by user');
+      throw new HttpException(
+        'Note not found or not owned by user',
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     return await this.noteRepository.softDelete({ id });
@@ -119,7 +209,10 @@ export class NotesService {
   async setArchiveStatus(id: number, status: boolean, userId: string) {
     const note = await this.findNote(id, userId);
     if (!note) {
-      throw new Error('Note not found or not owned by user');
+      throw new HttpException(
+        'Note not found or not owned by user',
+        HttpStatus.NOT_FOUND,
+      );
     }
     return await this.noteRepository.update({ id }, { is_archived: status });
   }
