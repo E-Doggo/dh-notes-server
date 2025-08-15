@@ -1,4 +1,6 @@
-export interface JWTUserDto {
-  id: string;
-  username: string;
+import { IsString } from 'class-validator';
+
+export class JWTUserDto {
+  @IsString() id: string;
+  @IsString() username: string;
 }

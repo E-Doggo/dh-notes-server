@@ -52,8 +52,6 @@ export class TagsService {
       .remove(tag.id);
 
     if (replacementTag != undefined) {
-      console.log('q');
-
       await this.noteRepository
         .createQueryBuilder()
         .relation('notes', 'tags')

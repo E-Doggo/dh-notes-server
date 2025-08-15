@@ -5,7 +5,12 @@ import { Note } from 'src/entities/note/note.entity';
 import { In, Repository } from 'typeorm';
 import { Tag } from 'src/entities/tags/tags.entity';
 import { BasicFiltersDTO } from 'src/DTO/basicFilters.dto';
-import { filter } from 'rxjs';
+import {
+  PaginationFilterDTO,
+  PaginationResultDTO,
+} from 'src/DTO/pagination.dto';
+import { offsetCalculator } from 'src/common/utils/pagCalculator';
+import { FiltersService } from '../filters/filters.service';
 
 @Injectable()
 export class NotesService {
@@ -14,6 +19,8 @@ export class NotesService {
     private readonly noteRepository: Repository<Note>,
     @InjectRepository(Tag)
     private readonly tagRepository: Repository<Tag>,
+
+    private readonly filterService: FiltersService,
   ) {}
 
   async findNote(id: number, userId: string) {
@@ -49,7 +56,13 @@ export class NotesService {
   async getNotesByUser(
     userId: string,
     filters: BasicFiltersDTO,
-  ): Promise<Note[]> {
+    paginationFilter: PaginationFilterDTO,
+  ): Promise<PaginationResultDTO> {
+    const { page, limit, offset } = offsetCalculator(
+      paginationFilter.page,
+      paginationFilter.limit,
+    );
+
     const queryBuilder = this.noteRepository
       .createQueryBuilder('notes')
       .addSelect('notes')
@@ -59,14 +72,14 @@ export class NotesService {
       .andWhere('notes.deleted_at IS NULL');
 
     if (filters.title != undefined) {
-      queryBuilder.andWhere('LOWER(notes.title) LIKE LOWER(:title)', {
-        title: `%${filters.title}%`,
+      queryBuilder.andWhere('notes.title ILIKE :title', {
+        title: `${filters.title}%`,
       });
     }
 
     if (filters.content != undefined) {
-      queryBuilder.andWhere('LOWER(notes.content) LIKE LOWER(:content)', {
-        content: `%${filters.content}%`,
+      queryBuilder.andWhere('notes.content ILIKE :content', {
+        content: `${filters.content}%`,
       });
     }
 
@@ -76,7 +89,19 @@ export class NotesService {
         .andWhere('filterTags.id IN (:...tags)', { tags: filters.tags });
     }
 
-    const result = await queryBuilder.getMany();
+    queryBuilder.skip(offset).take(limit);
+
+    await this.filterService.saveFilters(filters, userId);
+
+    const [data, total] = await queryBuilder.getManyAndCount();
+
+    const result: PaginationResultDTO = {
+      data: data,
+      total: total,
+      limit: limit,
+      page: page,
+    };
+
     return result;
   }
 

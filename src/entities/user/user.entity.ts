@@ -3,11 +3,13 @@ import {
   CreateDateColumn,
   Entity,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Note } from '../note/note.entity';
 import { Tag } from '../tags/tags.entity';
+import { Filters } from '../filters/filters.entity';
 
 @Entity('users')
 export class User {
@@ -37,4 +39,7 @@ export class User {
 
   @OneToMany(() => Tag, (tag) => tag.user)
   tags: Tag[];
+
+  @OneToOne(() => Filters, (filters) => filters.user)
+  filters: Filters;
 }
