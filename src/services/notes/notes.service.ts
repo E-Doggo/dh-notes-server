@@ -94,6 +94,7 @@ export class NotesService {
     userId: string,
     filters: BasicFiltersDTO,
     paginationFilter: PaginationFilterDTO,
+    userRole?: string,
   ): Promise<PaginationResultDTO<Note>> {
     //calculate offset based on current page and limit.
     //e.g. if limit = 20 and page = 3 then offset = 40 by the formula (page - 1)* offset
@@ -106,12 +107,12 @@ export class NotesService {
       .createQueryBuilder('notes')
       .addSelect('notes')
       .leftJoinAndSelect('notes.tags', 'tags')
-      .leftJoin('notes.user', 'user')
-      .where('user.id = :id', { id: userId })
-      .andWhere('notes.deleted_at IS NULL');
+      .leftJoin('notes.user', 'user');
 
-    //Apply filters selected to queryBuilder
+    this.checkUserRole(queryBuilder, userId, userRole ?? 'user');
     this.applyFilters(queryBuilder, filters);
+    console.log('yey');
+
     queryBuilder.skip(offset).take(limit);
 
     //save the filters passed on query for future use
@@ -127,6 +128,28 @@ export class NotesService {
     };
 
     return result;
+  }
+
+  checkUserRole(
+    queryBuilder: SelectQueryBuilder<Note>,
+    userId: string,
+    role: string,
+  ) {
+    if (role === 'admin') {
+      queryBuilder.addSelect([
+        'user.id',
+        'user.username',
+        'user.email',
+        'user.is_active',
+        'user.role',
+      ]);
+    } else {
+      queryBuilder
+        .where('user.id = :id', { id: userId })
+        .andWhere('notes.deleted_at IS NULL');
+    }
+
+    return queryBuilder;
   }
 
   applyFilters(

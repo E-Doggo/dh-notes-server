@@ -127,4 +127,42 @@ export class NotesController {
     const userId: string = req.user.id;
     return await this.noteService.deleteNote(id, userId);
   }
+
+  //Admin only requests
+  @Get('admin/fetch')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(['admin'])
+  async getAllNotes(
+    @Request() req: { user: JWTUserDto },
+    @Query('title') title?: string,
+    @Query('content') content?: string,
+    @Query(
+      'tags',
+      new ParseArrayPipe({ items: Number, separator: ',', optional: true }),
+    )
+    tags?: number[],
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
+    const userId: string = req.user.id;
+    const userRole: string = req.user.role;
+
+    const filters: BasicFiltersDTO = {
+      title: title,
+      content: content,
+      tags: tags,
+    };
+
+    const pagination: PaginationFilterDTO = {
+      page: page,
+      limit: limit,
+    };
+
+    return await this.noteService.getNotesByUser(
+      userId,
+      filters,
+      pagination,
+      userRole,
+    );
+  }
 }
