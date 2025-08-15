@@ -112,6 +112,8 @@ export class NotesService {
     this.checkUserRole(queryBuilder, userId, userRole ?? 'user');
     this.applyFilters(queryBuilder, filters);
 
+    queryBuilder.leftJoinAndSelect('notes.versions', 'versions');
+
     queryBuilder.skip(offset).take(limit);
 
     //save the filters passed on query for future use

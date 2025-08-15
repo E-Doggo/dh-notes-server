@@ -1,6 +1,6 @@
 import { Controller, Get, Query, Request, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles/roles.decorator';
 import { RolesGuard } from 'src/common/guards/roles/roles.guard';
 import { JWTUserDto } from 'src/DTO/jwtUser.dto';
@@ -13,6 +13,11 @@ import { UsersService } from 'src/services/users/users.service';
 export class UsersController {
   constructor(private readonly service: UsersService) {}
 
+  @ApiOperation({
+    summary: 'Retrieves the current logined profile data',
+    description:
+      'this request only fetches curated data from the profile and keeps the sensitive data hidden',
+  })
   @Get('profile')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(['admin', 'user'])
@@ -21,6 +26,11 @@ export class UsersController {
     return await this.service.findUserByID(userId);
   }
 
+  @ApiOperation({
+    summary: 'Retrieves all profiles data',
+    description:
+      'Unlike the previous get request, this request retrieves all the data of every profile, only if the request is made by an admin',
+  })
   @Get('all')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(['admin'])

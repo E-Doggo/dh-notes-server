@@ -17,6 +17,7 @@ import { AuthGuard } from '@nestjs/passport';
 import {
   ApiBearerAuth,
   ApiExtraModels,
+  ApiOperation,
   ApiParam,
   ApiQuery,
   ApiTags,
@@ -41,6 +42,9 @@ import { NotesService } from 'src/services/notes/notes.service';
 export class NotesController {
   constructor(private readonly noteService: NotesService) {}
 
+  @ApiOperation({
+    summary: 'Creates a Note for the logged user',
+  })
   @Post('create')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(['admin', 'user'])
@@ -53,6 +57,11 @@ export class NotesController {
     return await this.noteService.createNote(note, userId);
   }
 
+  @ApiOperation({
+    summary: 'Restores note to previous version',
+    description:
+      'The Database saves each previous note state by its original note id and its current version.',
+  })
   @Post('restore/:noteId/')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(['admin', 'user'])
@@ -83,9 +92,11 @@ export class NotesController {
     return await this.noteService.restoreNoteVersion(noteId, version, userId);
   }
 
-  @Get('fetch')
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(['admin', 'user'])
+  @ApiOperation({
+    summary: 'Retrieves the notes for a user',
+    description:
+      'The selection of a filter in the queries will trigger the Filter service to save (or update) the current user filter settings',
+  })
   @ApiQuery({
     name: 'title',
     required: false,
@@ -113,6 +124,9 @@ export class NotesController {
     required: false,
     description: 'limit of data rows per page fetched',
   })
+  @Get('fetch')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(['admin', 'user'])
   async getNotesByUser(
     @Request() req: { user: JWTUserDto },
     @Query('title') title?: string,
@@ -141,6 +155,9 @@ export class NotesController {
     return await this.noteService.getNotes(userId, filters, pagination);
   }
 
+  @ApiOperation({
+    summary: 'Fetches a single note based on the id passed on the URL',
+  })
   @Get('fetch/:id')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(['admin', 'user'])
@@ -153,6 +170,12 @@ export class NotesController {
     return await this.noteService.getSingleNote(id, userId);
   }
 
+  @ApiOperation({
+    summary:
+      'Updates a note based on the Id given on the URL and the Body data',
+    description:
+      'The data present on the body can be partial as the ORM will udpate only the attributes found in it. \n\n The update of a note will trigger the save of a new row, in the note history table, with the data of the note previous to the save.',
+  })
   @Put('update/:id')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(['admin', 'user'])
@@ -165,6 +188,9 @@ export class NotesController {
     return await this.noteService.updateNote(id, body, userId);
   }
 
+  @ApiOperation({
+    summary: 'Archives a note based on Id given on the URL',
+  })
   @Put('archive/:id')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(['admin', 'user'])
@@ -176,6 +202,9 @@ export class NotesController {
     return await this.noteService.setArchiveStatus(id, true, userId);
   }
 
+  @ApiOperation({
+    summary: 'Dearchives a note based on Id given on the URL',
+  })
   @Put('dearchive/:id')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(['admin', 'user'])
@@ -187,6 +216,11 @@ export class NotesController {
     return await this.noteService.setArchiveStatus(id, false, userId);
   }
 
+  @ApiOperation({
+    summary: 'Deletes a note based on Id given on the URL',
+    description:
+      'The deletion on the database is controlled with a softdeletion (deleted_at timestamp attribute) to avoid data loss that may be used for statistic or audits',
+  })
   @Delete('delete/:id')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(['admin', 'user'])
@@ -199,6 +233,9 @@ export class NotesController {
   }
 
   //Admin only requests
+  @ApiOperation({
+    summary: 'Retrieves all notes if the request was made by an admin',
+  })
   @Get('admin/fetch')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(['admin'])
