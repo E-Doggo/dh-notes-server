@@ -44,6 +44,15 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
+##Run Swagger
+To access the Swagger documentation please follow the next steps
+
+```bash
+# run server
+$ npm run start
+```
+Once the server has been compiled, access your navigator of preference and go to localhost:3000/api
+
 ## Resources
 
 - To run the project its necessary you add your own .env or download the .env [here](https://drive.google.com/file/d/1PPs94_SeJpxQ7NL8ZoOIZykg18E42OhE/view?usp=sharing)
