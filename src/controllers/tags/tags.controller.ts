@@ -11,9 +11,15 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles/roles.decorator';
 import { RolesGuard } from 'src/common/guards/roles/roles.guard';
+import { CreateTagDto } from 'src/DTO/createTag.dto';
 import { JWTUserDto } from 'src/DTO/jwtUser.dto';
 import { TagsService } from 'src/services/tags/tags.service';
 
@@ -30,7 +36,7 @@ export class TagsController {
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(['admin', 'user'])
   async createTag(
-    @Body() tag: { title: string },
+    @Body() tag: CreateTagDto,
     @Request() req: { user: JWTUserDto },
   ) {
     const userId: string = req.user.id;
@@ -53,15 +59,23 @@ export class TagsController {
     description:
       'the deletion will only be done if the user owns said tag, once deleted the tag will be deleted from its corresponding note',
   })
+  @ApiQuery({
+    name: 'replacementTag',
+    required: false,
+    description:
+      'tag that will replace the deleted tag on all notes that have said tag',
+  })
   @Delete('delete/:id')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(['admin', 'user'])
   async deleteTag(
     @Param('id') tagId: number,
     @Request() req: { user: JWTUserDto },
-    @Query('replacementTag') replacementTag?: number,
+    @Query('replacementTag') replacementTag?: string,
   ) {
     const userId: string = req.user.id;
-    return await this.tagService.deleteTag(tagId, userId, replacementTag);
+    const parsed = replacementTag ? parseInt(replacementTag, 10) : undefined;
+
+    return await this.tagService.deleteTag(tagId, userId, parsed);
   }
 }

@@ -236,6 +236,33 @@ export class NotesController {
   @ApiOperation({
     summary: 'Retrieves all notes if the request was made by an admin',
   })
+  @ApiQuery({
+    name: 'title',
+    required: false,
+    description:
+      'Title by wich the notes will be filtered (complete or incomplete title)',
+  })
+  @ApiQuery({
+    name: 'content',
+    required: false,
+    description: 'Portion of content by which the notes will be filtered',
+  })
+  @ApiQuery({
+    name: 'tags',
+    required: false,
+    type: [Number],
+    description: 'Tags by which the notes will be filtered',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'page number to fetch respective data',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'limit of data rows per page fetched',
+  })
   @Get('admin/fetch')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(['admin'])

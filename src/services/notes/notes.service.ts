@@ -184,6 +184,7 @@ export class NotesService {
       .addSelect('notes')
       .innerJoinAndSelect('notes.tags', 'tags')
       .leftJoin('notes.user', 'user')
+      .leftJoinAndSelect('notes.versions', 'versions')
       .where('user.id = :userId', { userId: userId })
       .andWhere('notes.id = :id', { id: id })
       .andWhere('notes.deleted_at IS NULL')

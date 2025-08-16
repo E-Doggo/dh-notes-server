@@ -1,6 +1,11 @@
 import { Controller, Get, Query, Request, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles/roles.decorator';
 import { RolesGuard } from 'src/common/guards/roles/roles.guard';
 import { JWTUserDto } from 'src/DTO/jwtUser.dto';
@@ -30,6 +35,16 @@ export class UsersController {
     summary: 'Retrieves all profiles data',
     description:
       'Unlike the previous get request, this request retrieves all the data of every profile, only if the request is made by an admin',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'page number to fetch respective data',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'limit of data rows per page fetched',
   })
   @Get('all')
   @UseGuards(AuthGuard('jwt'), RolesGuard)

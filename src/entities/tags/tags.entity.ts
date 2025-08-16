@@ -21,16 +21,16 @@ export class Tag {
   @Column()
   title: string;
 
-  @ManyToMany(() => Note, (note) => note.tags)
+  @ManyToMany(() => Note, (note) => note.tags, { onDelete: 'CASCADE' })
   notes: Note[];
 
-  @ManyToMany(() => NoteHistory, (note) => note.tags)
+  @ManyToMany(() => NoteHistory, (note) => note.tags, { onDelete: 'CASCADE' })
   notesHistory: NoteHistory[];
 
   @Index()
   @ManyToOne(() => User, (user) => user.tags, { onDelete: 'SET NULL' })
   user: User;
 
-  @ManyToMany(() => Filters, (filters) => filters.tags)
+  @ManyToMany(() => Filters, (filters) => filters.tags, { onDelete: 'CASCADE' })
   filters: Filters[];
 }
